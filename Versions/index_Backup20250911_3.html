@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kollaborative Workshop-Listen (Echtzeit)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    /* Konfiguriere die Schriftart Inter */
+    html {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .icon-size {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    /* Stile für das Burger-Menü */
+    #menu-sidebar {
+      transition: transform 0.3s ease-in-out;
+    }
+
+    #menu-overlay {
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    /* Body-Klasse zum Öffnen des Menüs */
+    body.menu-open #menu-sidebar {
+      transform: translateX(0);
+    }
+
+    body.menu-open #menu-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+
+</head>
+
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+
+  <!-- Mobiles Menü (Sidebar) -->
+  <div id="menu-sidebar"
+    class="fixed inset-y-0 left-0 bg-white shadow-xl z-50 p-6 transform -translate-x-full">
+    <h2 class="text-2xl font-bold text-indigo-800 mb-6">Navigation</h2>
+    <nav>
+      <ul class="space-y-1">
+        <li>
+          <button id="menu-link-workshops-sa"
+            class="w-full text-left flex items-center text-lg font-medium text-gray-700 hover:text-indigo-600 p-2 rounded-lg transition">
+            <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+            Workshops (Sa)
+          </button>
+        </li>
+        <li>
+          <button id="menu-link-workshops-so"
+            class="w-full text-left flex items-center text-lg font-medium text-gray-700 hover:text-indigo-600 p-2 rounded-lg transition">
+            <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+            Workshops (So)
+          </button>
+        </li>
+        <li>
+          <button id="menu-link-sport-sa"
+            class="w-full text-left flex items-center text-lg font-medium text-gray-700 hover:text-indigo-600 p-2 rounded-lg transition">
+            <i data-lucide="dumbbell" class="w-5 h-5 mr-3"></i>
+            Sportangebote (Sa)
+          </button>
+        </li>
+        <li>
+          <button id="menu-link-sport-so"
+            class="w-full text-left flex items-center text-lg font-medium text-gray-700 hover:text-indigo-600 p-2 rounded-lg transition">
+            <i data-lucide="dumbbell" class="w-5 h-5 mr-3"></i>
+            Sportangebote (So)
+          </button>
+        </li>
+        <!-- NEU: Admin Login/Logout Button (unter den Sportangeboten) -->
+        <li class="border-t pt-4 mt-4">
+          <button id="menu-link-admin-login"
+            class="w-full text-left flex items-center text-lg font-medium text-gray-700 hover:text-yellow-700 p-2 rounded-lg transition">
+            <i data-lucide="user-cog" class="w-5 h-5 mr-3" id="admin-icon"></i>
+            <span id="admin-status-text">Admin Login</span>
+          </button>
+        </li>
+
+        <!-- NEU: Admin-Einstellungs-Button (standardmäßig versteckt) -->
+        <li>
+          <button id="menu-link-settings"
+            class="hidden w-full text-left flex items-center text-lg font-medium text-blue-700 hover:text-blue-900 p-2 rounded-lg transition">
+            <i data-lucide="settings" class="w-5 h-5 mr-3"></i>
+            Einstellungen
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Overlay zum Schließen des Menüs -->
+  <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 pointer-events-none">
+  </div>
+
+  <div class="max-w-6xl mx-auto">
+    <header class="text-center mb-10 p-6 bg-white rounded-xl shadow-lg border-t-4 border-indigo-500 relative">
+      <!-- Burger-Menü Button -->
+      <button id="menu-open-btn"
+        class="absolute top-4 left-4 p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+
+      <h1 id="main-title" class="text-4xl font-extrabold text-indigo-800 mb-2">Workshops (Samstag)</h1>
+      <p id="main-subtitle" class="text-xl text-gray-600 font-medium">Trage dich hier für die Workshops am Samstag ein
+      </p>
+    </header>
+
+    <!-- NEU: Wrapper für Hauptinhalt (um ihn auszublenden) -->
+    <div id="main-content-wrapper">
+      <div id="admin-panel" class="hidden mb-10 p-6 bg-yellow-50 border border-yellow-300 rounded-xl shadow-md">
+        <h2 class="text-2xl font-bold text-yellow-800 mb-4 flex items-center">
+          <i data-lucide="shield" class="w-6 h-6 mr-2"></i>
+          Administrator-Steuerung
+        </h2>
+        <p id="admin-panel-description" class="text-sm text-yellow-700 mb-4 font-medium">
+          Erstellen oder bearbeiten Sie einen Workshop/ein Sportangebot.
+        </p>
+
+        <!-- ID-Feld entfernt, Grid-Spalten angepasst -->
+        <form id="workshop-form" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end p-4 bg-white rounded-lg border">
+          <div class="md:col-span-1">
+            <label for="form-title" class="block text-xs font-semibold text-gray-600 mb-1">Titel</label>
+            <input type="text" id="form-title" required class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+          </div>
+          <div class="md:col-span-1">
+            <label for="form-date" class="block text-xs font-semibold text-gray-600 mb-1">Datum und Uhrzeit</label>
+            <input type="datetime-local" id="form-date" required
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+          </div>
+          <div class="md:col-span-1">
+            <label for="form-location" class="block text-xs font-semibold text-gray-600 mb-1">Ort</label>
+            <input type="text" id="form-location" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+          </div>
+          <div class="md:col-span-1">
+            <label for="form-capacity" class="block text-xs font-semibold text-gray-600 mb-1">Max. Teilnehmer</label>
+            <input type="number" id="form-capacity" required min="1"
+              class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+          </div>
+          <div class="md:col-span-1 flex space-x-2">
+            <button type="submit" id="form-submit-btn"
+              class="flex-grow px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
+              Erstellen/Speichern
+            </button>
+          </div>
+        </form>
+        <p id="admin-status" class="mt-3 text-sm font-medium text-gray-700"></p>
+      </div>
+
+
+      <div id="workshops-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="loading-workshops" class="md:col-span-full text-center p-10 text-indigo-600 font-semibold">
+          <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mb-3"
+            role="status"></div>
+          <p>Lade Workshops...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEU: Einstellungs-Seite (standardmäßig versteckt) -->
+    <div id="settings-page" class="hidden p-8 bg-white rounded-xl shadow-lg border-t-4 border-blue-500">
+      <form id="settings-form">
+        <div class="mb-8">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Sichtbare Seiten (für normale User)</h3>
+          <p class="text-sm text-gray-600 mb-4">Wählen Sie aus, welche Seiten im Menü für normale Benutzer sichtbar sein
+            sollen. Als Admin sehen Sie immer alle Seiten.</p>
+          <div id="settings-visible-pages" class="space-y-3">
+            <!-- Checkboxen werden hier per JS eingefügt -->
+          </div>
+        </div>
+        <div class="mb-8 pt-6 border-t">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">Standard-Startseite</h3>
+          <p class="text-sm text-gray-600 mb-4">Wählen Sie die Seite aus, die beim Öffnen der App standardmäßig geladen
+            wird.</p>
+          <div id="settings-default-page" class="space-y-3">
+            <!-- Radio-Buttons werden hier per JS eingefügt -->
+          </div>
+        </div>
+        <button type="submit"
+          class="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-md">
+          Einstellungen Speichern
+        </button>
+        <p id="settings-status" class="mt-4 text-center text-sm font-medium"></p>
+      </form>
+    </div>
+
+
+    <div id="global-error-message"
+      class="hidden fixed bottom-4 right-4 p-4 bg-red-600 text-white rounded-lg shadow-xl font-medium z-50"></div>
+
+    <div id="user-info-footer"
+      class="hidden mt-8 text-center p-4 bg-gray-100 rounded-lg text-gray-600 text-sm break-all">
+      <span class="font-semibold">App ID:</span> <span id="app-id-display"></span> |
+      <span class="font-semibold">User ID:</span> <span id="user-id-display"></span>
+    </div>
+  </div>
+
+  <div id="admin-login-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm">
+      <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <i data-lucide="key" class="w-5 h-5 mr-2"></i> Admin Login
+      </h3>
+      <p class="text-gray-600 mb-6">Bitte geben Sie das Administrator-Passwort ein.</p>
+      <input type="password" id="admin-password-input" placeholder="Passwort"
+        class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-indigo-500 focus:border-indigo-500">
+      <div id="admin-login-error" class="text-red-500 text-sm mb-4 hidden"></div>
+      <div class="flex justify-end space-x-3">
+        <button id="admin-modal-cancel-btn"
+          class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Abbrechen</button>
+        <button id="admin-modal-confirm-btn"
+          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Anmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
+      <h3 id="modal-title" class="text-xl font-bold text-gray-800 mb-4">Aktion bestätigen</h3>
+      <p id="modal-text" class="text-gray-600 mb-6">Möchten Sie den Eintrag wirklich löschen?</p>
+      <div class="flex justify-end space-x-3">
+        <button id="modal-cancel-btn"
+          class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Abbrechen</button>
+        <button id="modal-confirm-btn"
+          class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition">
+          <span id="modal-confirm-text">Löschen</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Importiere notwendige Firebase-Module
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore, collection, doc,
+      onSnapshot, setLogLevel,
+      setDoc, updateDoc, arrayUnion, arrayRemove,
+      getDoc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // *******************************************************************
+    // SICHERHEITSWARNUNG: Dieses Passwort ist hartkodiert und nur für Demos!
+    // *******************************************************************
+    const ADMIN_PASSWORD = "workshopadmin";
+
+    const YOUR_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAm5Jo-J1K7kp-2ZjLS3uGIsCKrIDvdBp0",
+      authDomain: "konfi-castle-workshops.firebaseapp.com",
+      projectId: "konfi-castle-workshops",
+      storageBucket: "konfi-castle-workshops.firebasestorage.app",
+      messagingSenderId: "426392861731",
+      appId: "1:426392861731:web:48277e7a085a3604500596",
+      measurementId: "G-H96JTVKTNM"
+    };
+
+    // Globale Variablen aus der Canvas-Umgebung oder Fallback
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : YOUR_FIREBASE_CONFIG;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+
+    let app;
+    let db;
+    let auth;
+    let userId = 'Gast-User';
+    let isAuthReady = false;
+    let isAdmin = false;
+    let editingWorkshopId = null; // NEU: Speichert die ID des zu bearbeitenden Workshops
+
+    let currentCollectionId = 'workshops_sa'; // Wird durch Einstellungen überschrieben
+    let workshopListenerUnsubscribe = null;
+    let settingsListenerUnsubscribe = null;
+
+    // NEU: App-Einstellungen
+    const DEFAULT_SETTINGS = {
+      defaultPage: 'workshops_sa',
+      visiblePages: ['workshops_sa', 'workshops_so', 'sport_sa', 'sport_so']
+    };
+    let appSettings = { ...DEFAULT_SETTINGS };
+
+    // Definition der Collections und ihrer Titel
+    const COLLECTION_TITLES = {
+      'workshops_sa': 'Workshops (Samstag)',
+      'workshops_so': 'Workshops (Sonntag)',
+      'sport_sa': 'Sportangebote (Samstag)',
+      'sport_so': 'Sportangebote (Sonntag)',
+      'settings': 'Einstellungen'
+    };
+    const COLLECTION_SUBTITLES = {
+      'workshops_sa': 'Trage dich hier für die Workshops am Samstag ein',
+      'workshops_so': 'Trage dich hier für die Workshops am Sonntag ein',
+      'sport_sa': 'Trage dich hier für die Sportangebote am Samstag ein',
+      'sport_so': 'Trage dich hier für die Sportangebote am Sonntag ein',
+      'settings': 'Konfigurieren Sie die App-Sichtbarkeit'
+    };
+
+
+    const workshopsContainer = document.getElementById('workshops-container');
+    const globalErrorMessage = document.getElementById('global-error-message');
+    const confirmModal = document.getElementById('confirm-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalText = document.getElementById('modal-text');
+    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+    const modalConfirmText = document.getElementById('modal-confirm-text');
+    const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+    const adminStatusText = document.getElementById('admin-status-text');
+    const adminLoginModal = document.getElementById('admin-login-modal');
+    const adminPasswordInput = document.getElementById('admin-password-input');
+    const adminModalConfirmBtn = document.getElementById('admin-modal-confirm-btn');
+    const adminModalCancelBtn = document.getElementById('admin-modal-cancel-btn');
+    const adminLoginError = document.getElementById('admin-login-error');
+    const adminPanel = document.getElementById('admin-panel');
+    const adminStatus = document.getElementById('admin-status');
+    const workshopForm = document.getElementById('workshop-form');
+    // const formId = document.getElementById('form-id'); // ENTFERNT
+    const formTitle = document.getElementById('form-title');
+    const formDate = document.getElementById('form-date');
+    const formLocation = document.getElementById('form-location');
+    const formCapacity = document.getElementById('form-capacity');
+    const adminPanelDescription = document.getElementById('admin-panel-description'); // NEU
+
+    // DOM-Elemente für die 4 Menü-Buttons
+    const menuOpenBtn = document.getElementById('menu-open-btn');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const menuLinkWorkshopsSa = document.getElementById('menu-link-workshops-sa');
+    const menuLinkWorkshopsSo = document.getElementById('menu-link-workshops-so');
+    const menuLinkSportSa = document.getElementById('menu-link-sport-sa');
+    const menuLinkSportSo = document.getElementById('menu-link-sport-so');
+
+    // NEU: DOM-Elemente für Admin-Login und Einstellungen
+    const menuLinkAdminLogin = document.getElementById('menu-link-admin-login');
+    const adminIcon = document.getElementById('admin-icon');
+    const menuLinkSettings = document.getElementById('menu-link-settings');
+    const mainContentWrapper = document.getElementById('main-content-wrapper');
+    const settingsPage = document.getElementById('settings-page');
+    const settingsForm = document.getElementById('settings-form');
+    const settingsVisiblePages = document.getElementById('settings-visible-pages');
+    const settingsDefaultPage = document.getElementById('settings-default-page');
+    const settingsStatus = document.getElementById('settings-status');
+
+
+    document.getElementById('app-id-display').textContent = appId;
+
+
+    // Statische Definition der Workshops (wird nur zur Initialisierung verwendet)
+    // Diese Daten gelten NUR für die 'workshops_sa' Collection
+    const WORKSHOPS_STATIC_DATA = [
+      { id: 'testWorkshop', title: 'Beispiel', date: '2025-12-17T14:30', location: 'Raum 101', maxParticipants: 12 }
+    ];
+
+    /**
+     * Gibt den korrekten Firestore-Pfad für die ÖFFENTLICHE Workshop-Liste zurück.
+     * Nutzt die globale Variable 'currentCollectionId'.
+     */
+    function getWorkshopsPath() {
+      const collectionName = currentCollectionId || 'workshops_sa';
+      return `artifacts/${appId}/public/data/${collectionName}`;
+    }
+
+    /**
+     * NEU: Gibt den Pfad zur Einstellungs-Collection zurück.
+     */
+    function getSettingsPath() {
+      // Korrigierter Pfad: Muss auf eine Collection zeigen.
+      return `artifacts/${appId}/public/data/app_config`;
+    }
+
+    // Konvertiert ISO Datum/Uhrzeit in deutsches Format
+    function formatDateForDisplay(isoDateString) {
+      if (!isoDateString || typeof isoDateString !== 'string') return 'Datum unbekannt';
+      try {
+        const date = new Date(isoDateString);
+        return date.toLocaleString('de-DE', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', weekday: 'long'
+        });
+      } catch (e) {
+        console.error("Fehler beim Formatieren des Datums:", e);
+        return isoDateString;
+      }
+    }
+
+    /**
+     * Gibt das aktuelle Datum und die aktuelle Uhrzeit im Format YYYY-MM-DDTHH:MM zurück.
+     */
+    function getCurrentDateTimeLocal() {
+      const now = new Date();
+      const year = String(now.getFullYear());
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+
+    /**
+     * Zeigt eine benutzerdefinierte Fehlermeldung/Erfolgsmeldung an.
+     */
+    function showMessage(message, isError = true) {
+      globalErrorMessage.textContent = message;
+      globalErrorMessage.className = isError
+        ? 'fixed bottom-4 right-4 p-4 bg-red-600 text-white rounded-lg shadow-xl font-medium z-50'
+        : 'fixed bottom-4 right-4 p-4 bg-green-600 text-white rounded-lg shadow-xl font-medium z-50';
+      globalErrorMessage.classList.remove('hidden');
+
+      setTimeout(() => {
+        globalErrorMessage.classList.add('hidden');
+      }, 5000);
+    }
+
+    /**
+     * Simuliert einen Bestätigungsdialog.
+     * @param {string} message - Die Hauptnachricht, die im Modal angezeigt wird.
+     * @param {boolean} isDanger - Definiert, ob der Bestätigungsbutton rot (Gefahr/Löschen) sein soll.
+     * @param {string} confirmText - Text für den Bestätigungsbutton. Standard: 'Löschen'.
+     * @param {string} title - Titel für den Modal. Standard: 'Aktion bestätigen'.
+     */
+    function showConfirmModal(message, isDanger = true, confirmText = 'Löschen', title = 'Aktion bestätigen') {
+      return new Promise(resolve => {
+        modalTitle.textContent = title;
+        modalText.textContent = message;
+        modalConfirmText.textContent = confirmText;
+        confirmModal.classList.remove('hidden');
+
+        modalConfirmBtn.className = isDanger
+          ? 'px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition'
+          : 'px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition';
+
+        const confirmListener = () => {
+          confirmModal.classList.add('hidden');
+          modalConfirmBtn.removeEventListener('click', confirmListener);
+          modalCancelBtn.removeEventListener('click', cancelListener);
+          resolve(true);
+        };
+
+        const cancelListener = () => {
+          confirmModal.classList.add('hidden');
+          modalConfirmBtn.removeEventListener('click', confirmListener);
+          modalCancelBtn.removeEventListener('click', cancelListener);
+          resolve(false);
+        };
+
+        modalConfirmBtn.addEventListener('click', confirmListener);
+        modalCancelBtn.addEventListener('click', cancelListener);
+      });
+    }
+
+    /**
+     * Initialisiert Firebase und führt die Authentifizierung durch.
+     */
+    async function initFirebase() {
+      try {
+        setLogLevel('Debug');
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        await setPersistence(auth, browserLocalPersistence);
+
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            userId = user.uid;
+            isAuthReady = true;
+            document.getElementById('user-id-display').textContent = userId;
+
+            // 1. Lade die App-Einstellungen und starte dann die App
+            await listenForSettingsAndInitApp();
+
+            // 2. Hänge Admin- und Menü-Events an
+            attachAdminEventListeners();
+            attachMenuEventListeners();
+
+            // 3. Aktualisiere Admin-Status im Menü
+            updateAdminMenuStatus();
+            document.getElementById('user-info-footer').classList.remove('hidden');
+
+          } else {
+            try {
+              if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+              } else {
+                await signInAnonymously(auth);
+              }
+            } catch (error) {
+              console.error("Fehler bei der Authentifizierung:", error);
+              isAuthReady = true;
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error("Fehler bei der Firebase-Initialisierung:", error);
+      }
+    }
+
+    /**
+     * NEU: Lädt die App-Einstellungen aus Firestore und startet dann
+     * die Initialisierung der Workshop-Liste.
+     */
+    async function listenForSettingsAndInitApp() {
+      // Korrigiert: getSettingsPath() liefert Collection, 'app_settings' ist das Dokument.
+      const settingsRef = doc(db, getSettingsPath(), 'app_settings');
+
+      if (settingsListenerUnsubscribe) settingsListenerUnsubscribe();
+
+      settingsListenerUnsubscribe = onSnapshot(settingsRef, async (docSnap) => {
+        if (docSnap.exists()) {
+          appSettings = docSnap.data();
+        } else {
+          appSettings = { ...DEFAULT_SETTINGS };
+          // Wenn der Admin eingeloggt ist und die Einstell. fehlen, erstelle sie.
+          if (isAdmin) {
+            try {
+              await setDoc(settingsRef, DEFAULT_SETTINGS);
+              console.log("Standard-Einstellungen in Firestore erstellt.");
+            } catch (e) {
+              console.error("Fehler beim Erstellen der Standard-Einstellungen:", e);
+            }
+          }
+        }
+
+        // Setze die Start-Collection ID basierend auf den Einstellungen
+        currentCollectionId = appSettings.defaultPage || DEFAULT_SETTINGS.defaultPage;
+
+        // Aktualisiere die Menü-Sichtbarkeit
+        updateMenuVisibility();
+
+        // Lade die Header-Texte für die Startseite
+        updateHeader(currentCollectionId);
+
+        // Initialisiere die statischen Daten (falls nötig) für die Startseite
+        await initWorkshopData(); // nutzt currentCollectionId
+
+        // Starte den Listener für die Startseite
+        listenForWorkshops(); // nutzt currentCollectionId
+      });
+    }
+
+
+    /**
+     * Initialisiert statische Workshop-Dokumente, falls sie nicht existieren.
+     * Prüft jetzt auf 'workshops_sa'.
+     */
+    async function initWorkshopData() {
+      if (currentCollectionId !== 'workshops_sa') {
+        console.log(`Überspringe statische Daten-Initialisierung für Collection: ${currentCollectionId}`);
+        return;
+      }
+      const path = getWorkshopsPath();
+      for (const workshop of WORKSHOPS_STATIC_DATA) {
+        const docRef = doc(db, path, workshop.id);
+        try {
+          const docSnap = await getDoc(docRef);
+          if (!docSnap.exists()) {
+            await setDoc(docRef, {
+              title: workshop.title, date: workshop.date, location: workshop.location,
+              color: 'bg-indigo-600', maxParticipants: workshop.maxParticipants, participants: []
+            });
+            console.log(`Workshop ${workshop.id} initial erstellt.`);
+          } else {
+            await updateDoc(docRef, {
+              title: workshop.title, date: workshop.date, location: workshop.location,
+              color: docSnap.data().color || 'bg-indigo-600', maxParticipants: workshop.maxParticipants
+            });
+            console.log(`Workshop ${workshop.id} Metadaten aktualisiert.`);
+          }
+        } catch (e) {
+          console.error("Fehler bei Initialisierung/Aktualisierung des Workshop-Dokuments:", e);
+        }
+      }
+      console.log("Workshop-Datenbank initialisiert und geprüft.");
+    }
+
+
+    /**
+     * Rendert alle Workshop-Kacheln neu.
+     */
+    function renderWorkshops(workshops) {
+      workshopsContainer.innerHTML = '';
+
+      if (isAdmin) {
+        adminPanel.classList.remove('hidden');
+        // NEU: Setze das Formular auf Erstellungsmodus und belege das Datum vor
+        resetWorkshopForm(true);
+      } else {
+        adminPanel.classList.add('hidden');
+      }
+
+      if (workshops.length === 0) {
+        workshopsContainer.innerHTML = `<p class="md:col-span-full text-center p-10 text-gray-500">Keine Einträge in dieser Kategorie gefunden. Ein Admin kann hier neue erstellen.</p>`;
+        return;
+      }
+
+      // Sortierung nur für 'workshops_sa' anwenden
+      let workshopsToRender = workshops;
+      if (currentCollectionId === 'workshops_sa') {
+        const orderedWorkshops = WORKSHOPS_STATIC_DATA
+          .map(staticW => workshops.find(dynW => dynW.id === staticW.id))
+          .filter(w => w);
+        const dynamicOnly = workshops.filter(dynW => !WORKSHOPS_STATIC_DATA.some(staticW => staticW.id === dynW.id));
+        workshopsToRender = [...orderedWorkshops, ...dynamicOnly];
+      }
+
+
+      workshopsToRender.forEach(workshop => {
+        const participantCount = workshop.participants ? workshop.participants.length : 0;
+        const isFull = participantCount >= workshop.maxParticipants;
+        const sortedParticipants = (workshop.participants || []).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        const displayDate = formatDateForDisplay(workshop.date);
+
+        const participantListHtml = sortedParticipants.map((p, index) => {
+          const canDelete = p.id === userId || isAdmin;
+          const deleteButton = canDelete ?
+            `<button data-workshop-id="${workshop.id}" 
+                       data-participant-id="${p.id}"
+                       data-participant-name="${p.name}"
+                       data-participant-timestamp="${p.timestamp}"
+                       class="delete-btn text-rose-500 hover:text-rose-700 ml-2 p-1 rounded transition"
+                       title="${p.id === userId ? 'Eigenen Eintrag entfernen' : 'Eintrag als Admin entfernen'}">
+                   <i data-lucide="x" class="w-4 h-4"></i>
+               </button>` : '';
+
+          return `
+            <li class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                <span class="text-gray-700 font-medium truncate">${index + 1}. ${p.name}</span>
+                ${deleteButton}
+            </li>`;
+        }).join('');
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl shadow-xl overflow-hidden transform hover:scale-[1.01] transition duration-300 border-t-8 border-indigo-500 relative';
+
+        card.innerHTML = `
+          ${isAdmin ? `
+              <div class="absolute top-3 right-3 flex space-x-2 z-10">
+                  <button data-workshop-id="${workshop.id}" 
+                          data-workshop-title="${workshop.title}"
+                          data-workshop-date="${workshop.date}" 
+                          data-workshop-location="${workshop.location || ''}"
+                          data-workshop-capacity="${workshop.maxParticipants}"
+                          class="admin-edit-btn p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition shadow-md" title="Workshop bearbeiten">
+                      <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </button>
+                  <button data-workshop-id="${workshop.id}" 
+                          class="admin-delete-workshop-btn p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition shadow-md" title="Workshop löschen">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+              </div>
+          ` : ''}
+          <div class="p-6">
+              <h3 class="text-2xl font-bold text-gray-800 mb-1">${workshop.title}</h3>
+              <p class="text-sm text-gray-500 mb-2 flex items-center font-medium">
+                  <i data-lucide="calendar" class="w-4 h-4 mr-1"></i> ${displayDate}
+              </p>
+              <p class="text-sm text-gray-500 mb-4 flex items-center font-medium">
+                  <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i> ${workshop.location || 'Ort unbekannt'}
+              </p>
+              <div class="flex items-center justify-between p-3 mb-4 rounded-lg ${isFull ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'} font-semibold">
+                  <div class="flex items-center">
+                      <i data-lucide="users" class="w-5 h-5 mr-2"></i>
+                      Teilnehmer:
+                  </div>
+                  <span>${participantCount} / ${workshop.maxParticipants}</span>
+              </div>
+              <h4 class="text-lg font-bold text-gray-700 mb-2">Angemeldete Namen:</h4>
+              <ul class="list-none p-0 space-y-1 max-h-48 overflow-y-auto" id="list-${workshop.id}">
+                  ${participantListHtml || '<li class="text-gray-400 italic">Noch keine Einträge.</li>'}
+              </ul>
+              <div class="mt-6 pt-4 border-t border-gray-100">
+                  <h4 class="text-md font-bold text-gray-700 mb-3">Namen hinzufügen:</h4>
+                  <div class="flex space-x-2">
+                      <input type="text" 
+                          placeholder="Ihr Name (Enter zum Bestätigen)"
+                          id="input-${workshop.id}"
+                          class="add-input flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                          ${isFull ? 'disabled' : ''}>
+                      <button data-workshop-id="${workshop.id}"
+                          id="btn-${workshop.id}"
+                          class="add-btn px-4 py-2 text-white font-semibold rounded-lg shadow-md transition duration-200 ${isFull ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}">
+                          Eintragen
+                      </button>
+                  </div>
+                  ${isFull ? '<p class="text-sm text-red-500 mt-2 font-medium">Dieser Workshop ist leider voll.</p>' : ''}
+                  <p id="status-${workshop.id}" class="text-sm mt-2 font-medium"></p>
+              </div>
+          </div>
+        `;
+        workshopsContainer.appendChild(card);
+      });
+
+      lucide.createIcons();
+      attachEventListeners();
+    }
+
+    /**
+     * Setzt das Admin-Formular zurück oder setzt es für die Bearbeitung.
+     * @param {boolean} isNew - true für Erstellungsmodus, false für Bearbeitungsmodus.
+     */
+    function resetWorkshopForm(isNew = true) {
+      workshopForm.reset();
+      adminStatus.textContent = '';
+      adminStatus.classList.remove('text-red-500', 'text-green-500', 'text-indigo-500');
+
+      if (isNew) {
+        editingWorkshopId = null;
+        formDate.value = getCurrentDateTimeLocal(); // NEU: Vorbelegung beim Erstellen
+        adminPanelDescription.textContent = 'Erstellen Sie ein neues Angebot. ID wird automatisch vergeben.';
+      } else {
+        adminPanelDescription.textContent = 'Workshop bearbeiten. Felder mit aktuellen Werten überschreiben.';
+      }
+    }
+
+    /**
+     * Erstellt einen Echtzeit-Listener für die gesamte Workshop-Sammlung.
+     * Hebt den alten Listener auf (unsubscribe), bevor ein neuer
+     * für die 'currentCollectionId' erstellt wird.
+     */
+    function listenForWorkshops() {
+      if (!db || !isAuthReady) {
+        return;
+      }
+      if (workshopListenerUnsubscribe) {
+        workshopListenerUnsubscribe();
+        workshopListenerUnsubscribe = null;
+        console.log("Alter Listener gekündigt.");
+      }
+
+      const workshopsCol = collection(db, getWorkshopsPath());
+      workshopListenerUnsubscribe = onSnapshot(workshopsCol, (snapshot) => {
+        document.getElementById('loading-workshops')?.remove();
+        const workshops = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderWorkshops(workshops);
+      }, (error) => {
+        console.error("Fehler beim Zuhören der Workshops: ", error);
+        workshopsContainer.innerHTML = '<p class="md:col-span-full text-red-500 p-10">FEHLER beim Laden der Listen. Bitte Konsole prüfen.</p>';
+      });
+    }
+
+    /**
+     * Fügt Event-Listener für alle 'Eintragen'- und 'Löschen'-Buttons sowie Enter-Tasten hinzu.
+     */
+    function attachEventListeners() {
+      // Eintragen-Buttons (Click-Handler)
+      document.querySelectorAll('.add-btn').forEach(button => {
+        button.onclick = null;
+        button.onclick = async () => {
+          const workshopId = button.getAttribute('data-workshop-id');
+          const input = document.getElementById(`input-${workshopId}`);
+          const name = input.value.trim();
+          if (name) {
+            await addParticipantToWorkshop(workshopId, name);
+            input.value = '';
+          } else {
+            showMessage("Bitte geben Sie einen Namen ein.", true);
+          }
+        };
+      });
+
+      // Eintragen via Enter-Taste (Keyup-Handler)
+      document.querySelectorAll('.add-input').forEach(input => {
+        input.onkeyup = null;
+        input.onkeyup = async (event) => {
+          if (event.key === 'Enter') {
+            const workshopId = input.id.replace('input-', '');
+            const name = input.value.trim();
+            if (name) {
+              await addParticipantToWorkshop(workshopId, name);
+              input.value = '';
+            } else {
+              showMessage("Bitte geben Sie einen Namen ein.", true);
+            }
+          }
+        };
+      });
+
+      // Löschen-Buttons
+      document.querySelectorAll('.delete-btn').forEach(button => {
+        button.onclick = null;
+        button.onclick = async () => {
+          const workshopId = button.getAttribute('data-workshop-id');
+          const participantData = {
+            name: button.getAttribute('data-participant-name'),
+            id: button.getAttribute('data-participant-id'),
+            timestamp: parseInt(button.getAttribute('data-participant-timestamp'), 10)
+          };
+
+          const confirmed = await showConfirmModal(
+            `Soll der Eintrag "${participantData.name}" aus der Liste entfernt werden?`,
+            true, // isDanger
+            'Eintrag entfernen', // confirmText
+            'Eintrag entfernen' // title
+          );
+
+          if (confirmed) {
+            await removeParticipantFromWorkshop(workshopId, participantData);
+          }
+        };
+      });
+
+      // Admin-Buttons (Edit/Delete Workshop)
+      document.querySelectorAll('.admin-edit-btn').forEach(button => {
+        button.onclick = null;
+        button.onclick = () => {
+          editingWorkshopId = button.getAttribute('data-workshop-id');
+          formTitle.value = button.getAttribute('data-workshop-title');
+          formDate.value = button.getAttribute('data-workshop-date');
+          formLocation.value = button.getAttribute('data-workshop-location');
+          formCapacity.value = button.getAttribute('data-workshop-capacity');
+          resetWorkshopForm(false); // Setze auf Bearbeitungsmodus
+          adminStatus.textContent = `Workshop '${formTitle.value}' wird bearbeitet (ID: ${editingWorkshopId}).`;
+          adminStatus.classList.add('text-indigo-500');
+        };
+      });
+
+      document.querySelectorAll('.admin-delete-workshop-btn').forEach(button => {
+        button.onclick = null;
+        button.onclick = async () => {
+          const workshopId = button.getAttribute('data-workshop-id');
+          const confirmed = await showConfirmModal(
+            `WARNUNG: Sind Sie sicher, dass Sie diesen Eintrag und ALLE seine Teilnehmer unwiderruflich löschen möchten?`,
+            true, // isDanger
+            'Löschen', // confirmText
+            'Eintrag löschen' // title
+          );
+          if (confirmed) {
+            await deleteWorkshop(workshopId);
+          }
+        };
+      });
+    }
+
+
+    /**
+     * Fügt einen Teilnehmer zur Liste eines Workshops hinzu.
+     */
+    async function addParticipantToWorkshop(workshopId, name) {
+      if (!isAuthReady || !db) {
+        showMessage("Warten Sie, bis die Datenbankverbindung hergestellt ist.", true);
+        return;
+      }
+      const statusDisplay = document.getElementById(`status-${workshopId}`);
+      const docRef = doc(db, getWorkshopsPath(), workshopId);
+      statusDisplay.textContent = 'Speichere...';
+      statusDisplay.classList.remove('text-red-500', 'text-green-500');
+      statusDisplay.classList.add('text-indigo-500');
+
+      try {
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          showMessage(`Fehler: Workshop-ID '${workshopId}' existiert nicht.`, true);
+          statusDisplay.textContent = 'Fehler beim Eintragen.';
+          statusDisplay.classList.replace('text-indigo-500', 'text-red-500');
+          return;
+        }
+        const data = docSnap.data();
+        const currentParticipants = data.participants || [];
+        const lowerCaseName = name.toLowerCase();
+        // Prüfe, ob der Name (nicht die ID) bereits existiert
+        const nameExists = currentParticipants.some(p => p.name.toLowerCase() === lowerCaseName);
+
+        if (nameExists) {
+          showMessage(`Der Name "${name}" ist in diesem Workshop bereits eingetragen.`, true);
+          statusDisplay.textContent = 'Name bereits eingetragen.';
+          statusDisplay.classList.replace('text-indigo-500', 'text-red-500');
+          return;
+        }
+        if (currentParticipants.length >= data.maxParticipants) {
+          showMessage("Dieser Workshop ist leider voll.", true);
+          statusDisplay.textContent = 'Workshop voll.';
+          statusDisplay.classList.replace('text-indigo-500', 'text-red-500');
+          return;
+        }
+        const newParticipant = { name: name, id: userId, timestamp: Date.now() };
+        await updateDoc(docRef, { participants: arrayUnion(newParticipant) });
+        statusDisplay.textContent = 'Erfolgreich eingetragen!';
+        statusDisplay.classList.replace('text-indigo-500', 'text-green-500');
+      } catch (error) {
+        console.error(`Fehler beim Eintragen in Workshop ${workshopId}: `, error);
+        showMessage(`Fehler beim Eintragen: ${error.message}`, true);
+        statusDisplay.textContent = 'Fehler beim Speichern.';
+        statusDisplay.classList.replace('text-indigo-500', 'text-red-500');
+      }
+    }
+
+    /**
+     * Entfernt einen Teilnehmer aus der Liste eines Workshops.
+     */
+    async function removeParticipantFromWorkshop(workshopId, participantObject) {
+      if (!isAuthReady || !db) {
+        showMessage("Warten Sie, bis die Datenbankverbindung hergestellt ist.", true);
+        return;
+      }
+      if (participantObject.id !== userId && !isAdmin) {
+        showMessage("Sie können nur Ihre eigenen Einträge löschen.", true);
+        return;
+      }
+      const docRef = doc(db, getWorkshopsPath(), workshopId);
+      try {
+        await updateDoc(docRef, { participants: arrayRemove(participantObject) });
+        showMessage(`Eintrag "${participantObject.name}" entfernt.`, false);
+      } catch (error) {
+        console.error(`Fehler beim Löschen aus Workshop ${workshopId}: `, error);
+        showMessage(`Fehler beim Löschen: ${error.message}`, true);
+      }
+    }
+
+    // ***************************************************************
+    // ADMIN-FUNKTIONEN
+    // ***************************************************************
+
+    function openAdminLoginModal() {
+      adminLoginModal.classList.remove('hidden');
+      adminPasswordInput.value = '';
+      adminLoginError.classList.add('hidden');
+      adminPasswordInput.focus();
+    }
+
+    function handleAdminLogin() {
+      const password = adminPasswordInput.value;
+      if (password === ADMIN_PASSWORD) {
+        isAdmin = true;
+        adminLoginModal.classList.add('hidden');
+        showMessage("Admin-Modus aktiviert.", false);
+        // NEU: Admin-Status im Menü aktualisieren
+        updateAdminMenuStatus();
+        // NEU: Menü-Sichtbarkeit sofort aktualisieren (inkl. Admin Panel)
+        updateMenuVisibility();
+        // Neu rendern, um Admin-UI auf Kacheln zu zeigen
+        listenForWorkshops();
+        closeMenu(); // Schließe das Menü nach dem Login
+      } else {
+        adminLoginError.textContent = "Falsches Passwort.";
+        adminLoginError.classList.remove('hidden');
+      }
+    }
+
+    async function handleAdminLogout() {
+      const confirmed = await showConfirmModal(
+        "Sind Sie sicher, dass Sie sich aus dem Admin-Modus abmelden möchten?",
+        false, // not isDanger
+        'Abmelden', // confirmText
+        'Admin-Abmeldung' // title
+      );
+      if (confirmed) {
+        isAdmin = false;
+        showMessage("Admin-Modus deaktiviert.", false);
+        // NEU: Admin-Status im Menü aktualisieren
+        updateAdminMenuStatus();
+        // NEU: Menü-Sichtbarkeit sofort aktualisieren (Admin Panel verschwindet)
+        updateMenuVisibility();
+        // Neu rendern, um Admin-UI von Kacheln zu entfernen
+        listenForWorkshops();
+        closeMenu(); // Schließe das Menü nach dem Logout
+      }
+    }
+
+    async function submitWorkshopForm(event) {
+      event.preventDefault();
+      // Verwende die global zwischengespeicherte ID, falls wir bearbeiten, sonst generiere eine neue
+      const workshopId = editingWorkshopId || crypto.randomUUID();
+      const title = formTitle.value.trim();
+      const date = formDate.value;
+      const location = formLocation.value.trim();
+      const capacity = parseInt(formCapacity.value, 10);
+
+      if (!title || !date || isNaN(capacity) || capacity <= 0) {
+        adminStatus.textContent = 'Fehler: Titel, Datum und Max. Teilnehmer müssen gültig ausgefüllt sein.';
+        adminStatus.classList.replace('text-indigo-500', 'text-red-500');
+        return;
+      }
+      const docRef = doc(db, getWorkshopsPath(), workshopId);
+      adminStatus.textContent = 'Speichere Workshop...';
+      adminStatus.classList.remove('text-red-500', 'text-green-500');
+      adminStatus.classList.add('text-indigo-500');
+
+      try {
+        const docSnap = await getDoc(docRef);
+        // FIX: Korrekte Methode docSnap.exists() verwenden und Daten sicher abrufen
+        const isNew = !docSnap.exists(); 
+        const existingData = docSnap.data();
+        const defaultColor = 'bg-indigo-500';
+
+        let colorToUse = defaultColor;
+        if (!isNew && existingData) {
+            // Lesen der Farbe nur, wenn das Dokument existiert UND Daten vorhanden sind
+            colorToUse = existingData.color || defaultColor;
+        }
+
+        const newWorkshopData = {
+          title: title, date: date, location: location, maxParticipants: capacity,
+          color: colorToUse,
+        };
+
+        if (isNew) {
+          await setDoc(docRef, { ...newWorkshopData, participants: [] });
+        } else {
+          // Beim Bearbeiten behalten wir participants und ID bei
+          await updateDoc(docRef, newWorkshopData);
+        }
+        adminStatus.textContent = `Eintrag '${title}' erfolgreich ${editingWorkshopId ? 'aktualisiert' : 'erstellt'}.`;
+        adminStatus.classList.replace('text-indigo-500', 'text-green-500');
+        resetWorkshopForm(true); // Formular zurücksetzen auf Erstellungsmodus
+      } catch (e) {
+        console.error("Fehler beim Speichern des Workshops:", e);
+        adminStatus.textContent = `Fehler beim Speichern: ${e.message}`;
+        adminStatus.classList.replace('text-indigo-500', 'text-red-500');
+      }
+    }
+
+    async function deleteWorkshop(workshopId) {
+      if (!isAdmin || !db) return;
+      const docRef = doc(db, getWorkshopsPath(), workshopId);
+      try {
+        await deleteDoc(docRef);
+        showMessage(`Eintrag wurde gelöscht.`, false);
+        if (currentCollectionId === 'workshops_sa') {
+          const index = WORKSHOPS_STATIC_DATA.findIndex(w => w.id === workshopId);
+          if (index > -1) WORKSHOPS_STATIC_DATA.splice(index, 1);
+        }
+      } catch (error) {
+        console.error(`Fehler beim Löschen des Eintrags ${workshopId}: `, error);
+        showMessage(`Fehler beim Löschen des Eintrags: ${error.message}`, true);
+      }
+    }
+
+    /**
+     * NEU: Aktualisiert den Text und die Farbe des Admin-Buttons im Menü.
+     */
+    function updateAdminMenuStatus() {
+      // Fehlerbehebung: 'adminLink' war nicht definiert. Wir verwenden 'menuLinkAdminLogin'.
+      if (isAdmin) {
+        adminStatusText.textContent = 'Admin Logout';
+        menuLinkAdminLogin.classList.replace('text-gray-700', 'text-yellow-700');
+        menuLinkAdminLogin.classList.replace('hover:text-yellow-700', 'hover:text-rose-700');
+        adminIcon.setAttribute('data-lucide', 'unlock');
+      } else {
+        adminStatusText.textContent = 'Admin Login';
+        menuLinkAdminLogin.classList.replace('text-yellow-700', 'text-gray-700');
+        menuLinkAdminLogin.classList.replace('hover:text-rose-700', 'hover:text-yellow-700');
+        adminIcon.setAttribute('data-lucide', 'user-cog');
+      }
+      lucide.createIcons(); // Icons neu rendern
+    }
+
+    function attachAdminEventListeners() {
+      adminModalCancelBtn.onclick = () => adminLoginModal.classList.add('hidden');
+      adminModalConfirmBtn.onclick = handleAdminLogin;
+      adminPasswordInput.onkeyup = (e) => {
+        if (e.key === 'Enter') handleAdminLogin();
+      };
+
+      // Workshop Hinzufügen/Bearbeiten
+      workshopForm.onsubmit = submitWorkshopForm;
+
+      // NEU: Event Listener für den Admin-Login/Logout im Menü
+      menuLinkAdminLogin.onclick = () => {
+        if (isAdmin) {
+          handleAdminLogout();
+        } else {
+          openAdminLoginModal();
+        }
+      };
+
+      // NEU: Event Listener für das Speicher-Formular (Einstellungen)
+      settingsForm.onsubmit = saveSettings;
+    }
+
+    // ***************************************************************
+    // MENÜ- & SEITEN-FUNKTIONEN
+    // ***************************************************************
+
+    /**
+     * Öffnet das Seitenmenü.
+     */
+    function openMenu() {
+      document.body.classList.add('menu-open');
+    }
+
+    /**
+     * Schließt das Seitenmenü.
+     */
+    function closeMenu() {
+      document.body.classList.remove('menu-open');
+    }
+
+    /**
+     * NEU: Aktualisiert die Sichtbarkeit der Menüpunkte basierend auf appSettings und isAdmin.
+     */
+    function updateMenuVisibility() {
+      const visible = appSettings.visiblePages || [];
+      menuLinkWorkshopsSa.classList.toggle('hidden', !visible.includes('workshops_sa') && !isAdmin);
+      menuLinkWorkshopsSo.classList.toggle('hidden', !visible.includes('workshops_so') && !isAdmin);
+      menuLinkSportSa.classList.toggle('hidden', !visible.includes('sport_sa') && !isAdmin);
+      menuLinkSportSo.classList.toggle('hidden', !visible.includes('sport_so') && !isAdmin);
+      menuLinkSettings.classList.toggle('hidden', !isAdmin);
+    }
+
+    /**
+     * NEU: Aktualisiert den Header-Titel und Untertitel.
+     */
+    function updateHeader(collectionId) {
+      document.getElementById('main-title').textContent = COLLECTION_TITLES[collectionId] || 'Workshops';
+      document.getElementById('main-subtitle').textContent = COLLECTION_SUBTITLES[collectionId] || '';
+    }
+
+    /**
+     * Wechselt die angezeigte Workshop-Kollektion.
+     */
+    function switchCollection(newCollectionId) {
+      if (newCollectionId === currentCollectionId && !mainContentWrapper.classList.contains('hidden')) {
+        closeMenu();
+        return; // Nichts tun, wenn bereits aktiv
+      }
+
+      console.log(`Wechsle zu Collection: ${newCollectionId}`);
+      currentCollectionId = newCollectionId;
+
+      // Zeige Hauptinhalt, verstecke Einstellungen
+      mainContentWrapper.classList.remove('hidden');
+      settingsPage.classList.add('hidden');
+
+      // Header-Texte anpassen
+      updateHeader(currentCollectionId);
+
+      // Lade-Status anzeigen
+      workshopsContainer.innerHTML = `
+        <div id="loading-workshops" class="md:col-span-full text-center p-10 text-indigo-600 font-semibold">
+          <div class="animate-spin inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mb-3" role="status"></div>
+          <p>Lade ${COLLECTION_TITLES[newCollectionId]}...</p>
+        </div>`;
+
+      // Admin-Panel zurücksetzen (falls Admin eingeloggt ist)
+      if (isAdmin) {
+        adminPanel.classList.add('hidden'); // Wird durch renderWorkshops wieder gezeigt
+        resetWorkshopForm(true); // NEU: Formular zurücksetzen/vorbelegen
+      }
+
+      // Daten-Initialisierung für die NEUE Collection prüfen
+      initWorkshopData();
+
+      // Listener für die NEUE Collection starten (kündigt automatisch den alten)
+      listenForWorkshops();
+
+      // Menü schließen
+      closeMenu();
+    }
+
+    /**
+     * NEU: Zeigt die Einstellungs-Seite an.
+     */
+    function showSettingsPage() {
+      // Verstecke Hauptinhalt, zeige Einstellungen
+      mainContentWrapper.classList.add('hidden');
+      settingsPage.classList.remove('hidden');
+
+      // Header anpassen
+      updateHeader('settings');
+
+      // Formularfelder mit aktuellen Einstellungen füllen
+      renderSettingsForm();
+
+      // Menü schließen
+      closeMenu();
+    }
+
+    /**
+     * NEU: Füllt das Einstellungsformular mit den aktuellen Werten.
+     */
+    function renderSettingsForm() {
+      settingsVisiblePages.innerHTML = '';
+      settingsDefaultPage.innerHTML = '';
+      settingsStatus.textContent = '';
+
+      // Iteriere über alle definierten Collections (außer 'settings')
+      Object.keys(COLLECTION_TITLES).filter(key => key !== 'settings').forEach(key => {
+        const title = COLLECTION_TITLES[key];
+        const isVisible = appSettings.visiblePages.includes(key);
+        const isDefault = appSettings.defaultPage === key;
+
+        // Checkbox für Sichtbarkeit
+        const checkboxHtml = `
+          <label class="flex items-center p-3 bg-gray-50 rounded-lg border">
+            <input type="checkbox" name="visible" value="${key}" ${isVisible ? 'checked' : ''} class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+            <span class="ml-3 text-gray-700 font-medium">${title}</span>
+          </label>`;
+        settingsVisiblePages.insertAdjacentHTML('beforeend', checkboxHtml);
+
+        // Radio-Button für Standard-Seite
+        const radioHtml = `
+          <label class="flex items-center p-3 bg-gray-50 rounded-lg border">
+            <input type="radio" name="defaultPage" value="${key}" ${isDefault ? 'checked' : ''} required class="h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+            <span class="ml-3 text-gray-700 font-medium">${title}</span>
+          </label>`;
+        settingsDefaultPage.insertAdjacentHTML('beforeend', radioHtml);
+      });
+    }
+
+    /**
+     * NEU: Speichert die Einstellungen aus dem Formular in Firestore.
+     */
+    async function saveSettings(event) {
+      event.preventDefault();
+      if (!isAdmin) return;
+
+      settingsStatus.textContent = 'Speichere...';
+      settingsStatus.classList.remove('text-red-500', 'text-green-500');
+      settingsStatus.classList.add('text-blue-600');
+
+      try {
+        // Sichtbare Seiten aus Checkboxen auslesen
+        const visiblePages = Array.from(settingsForm.querySelectorAll('input[name="visible"]:checked'))
+          .map(checkbox => checkbox.value);
+
+        // Standard-Seite aus Radio-Button auslesen
+        const defaultPage = settingsForm.querySelector('input[name="defaultPage"]:checked').value;
+
+        const newSettings = { visiblePages, defaultPage };
+
+        // Speichere in Firestore
+        const settingsRef = doc(db, getSettingsPath(), 'app_settings');
+        await setDoc(settingsRef, newSettings);
+
+        settingsStatus.textContent = 'Einstellungen erfolgreich gespeichert!';
+        settingsStatus.classList.replace('text-blue-600', 'text-green-500');
+
+      } catch (error) {
+        console.error("Fehler beim Speichern der Einstellungen:", error);
+        settingsStatus.textContent = `Fehler: ${error.message}`;
+        settingsStatus.classList.replace('text-blue-600', 'text-red-500');
+      }
+    }
+
+
+    /**
+     * Fügt die Event Listener für das Menü hinzu.
+     */
+    function attachMenuEventListeners() {
+      menuOpenBtn.onclick = openMenu;
+      menuOverlay.onclick = closeMenu;
+
+      // Links im Menü
+      menuLinkWorkshopsSa.onclick = () => switchCollection('workshops_sa');
+      menuLinkWorkshopsSo.onclick = () => switchCollection('workshops_so');
+      menuLinkSportSa.onclick = () => switchCollection('sport_sa');
+      menuLinkSportSo.onclick = () => switchCollection('sport_so');
+      // NEU: Einstellungs-Link
+      menuLinkSettings.onclick = showSettingsPage;
+    }
+
+
+    // Starte die Anwendung und initialisiere Firebase
+    initFirebase();
+
+    window.onload = () => {
+      lucide.createIcons();
+    };
+  </script>
+</body>
+
+</html>

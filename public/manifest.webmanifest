@@ -1,0 +1,23 @@
+{
+  "name": "Konfi-Castle Workshops",
+  "short_name": "Konfi-Castle Workshops",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#4f46e5",
+  "description": "Workshop-Anmeldung für das Konfi-Castle.",
+  "icons": [
+    {
+      "src": "KonfiCastleLogo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "KonfiCastleLogo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
