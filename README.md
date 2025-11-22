@@ -38,25 +38,21 @@ KonfiCastle-WorkshopApp/
 
 🚀 Workflow für Entwickler (Schritt-für-Schritt)
 Du möchtest etwas an der App ändern?
-WICHTIG: Wir arbeiten nicht direkt auf dem main-Branch. Änderungen kommen nur über Pull Requests (PRs) rein.
 
 1. Vorbereitung (Einmalig)
 Du brauchst folgende Tools installiert:
-Git
-Node.js (wird für die Firebase Tools benötigt).
-Firebase CLI: Öffne dein Terminal und installiere es mit:
-  npm install -g firebase-tools
+  1. Git
+  2. Node.js (wird für die Firebase Tools benötigt).
+  3. Firebase CLI: Öffne dein Terminal und installiere es mit:
+    npm install -g firebase-tools
 
-Repo klonen:
-git clone [https://github.com/cheater77seven/KonfiCastle_WorkshopApp.git](https://github.com/cheater77seven/KonfiCastle_WorkshopApp.git)
-cd KonfiCastle_WorkshopApp
+  4. Repo klonen:
+    git clone [https://github.com/cheater77seven/KonfiCastle_WorkshopApp.git](https://github.com/cheater77seven/KonfiCastle_WorkshopApp.git)
+    cd KonfiCastle_WorkshopApp
 
 2. Änderungen machen (Der tägliche Workflow)
-Schritt A: Branch erstellen
-Bevor du anfängst, erstelle einen neuen Branch für dein Feature oder Bugfix:
-  git checkout main
-  git pull origin main             # Erstmal den aktuellen Stand holen
-  git checkout -b mein-neues-feature  # Neuer Branch (Name anpassen!)
+Schritt A: Code bearbeiten
+Öffne den Ordner in VS Code. Der Hauptcode liegt in public/index.html.
 
 Schritt B: Lokal testen
 Da wir mit Datenbanken arbeiten, öffne nicht einfach die HTML-Datei. Starte einen lokalen Server:
@@ -72,20 +68,15 @@ Bist du zufrieden? Dann lade die neue Version auf den Google-Server:
 ⚠️ Achtung: Das aktualisiert sofort die öffentliche Webseite! Sei vorsichtig.
 
 3. Änderungen im Code sichern (Git & GitHub)
-Wenn dein Code fertig und deployt ist, muss er zurück ins Repository.
+Wenn dein Code fertig und deployt ist, lade ihn ins Repository hoch, damit andere (und du selbst) den aktuellen Stand haben.
 Änderungen speichern:
   git add .
   git commit -m "Beschreibung was ich geändert habe"
 
 Hochladen (Push):
-  git push origin mein-neues-feature
+  git push
 
-Pull Request erstellen:
-  Gehe auf GitHub zum Repository.
-  GitHub zeigt dir oft schon gelb an: "mein-neues-feature had recent pushes".
-  Klicke auf "Compare & pull request".
-  Beschreibe kurz, was du getan hast und klicke auf Create pull request.
-  Warte auf die Genehmigung durch den Admin. Nach dem "Merge" ist dein Code im main-Branch.
+(Falls du im Team arbeitest, nutze bitte Branches und Pull Requests, statt direkt auf main zu pushen).
 
 
 👤 Kontakt
