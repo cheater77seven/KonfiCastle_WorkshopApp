@@ -1,0 +1,24 @@
+# --- Systemdateien (Müll von Windows/Mac) ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- VS Code Einstellungen (User-spezifisch) ---
+.vscode/
+*.code-workspace
+
+# --- Firebase (Das willst du nicht im Repo!) ---
+.firebase/
+firebase-debug.log
+
+# --- Node Modules (Falls du mal NPM nutzt) ---
+node_modules/
+npm-debug.log
+
+# --- Build Ordner (Falls später mal kompiliert wird) ---
+dist/
+build/
+
+# --- Sicherheit (WICHTIG: Nie Secrets hochladen) ---
+.env
+.env.local
